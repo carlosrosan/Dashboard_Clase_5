@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - CSV Data Visualization{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>CSV Data Dashboard</h1>
+            <a href="{% url 'dashboard_app:upload_csv' %}" class="btn btn-primary">
+                <i class="bi bi-upload"></i> Upload New CSV
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if chart_data %}
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Data Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-primary">{{ chart_data.summary.total_rows }}</h3>
+                                <p class="text-muted">Total Rows</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-success">{{ chart_data.summary.total_columns }}</h3>
+                                <p class="text-muted">Total Columns</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-info">{{ chart_data.summary.numeric_columns|length }}</h3>
+                                <p class="text-muted">Numeric Columns</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-warning">{{ chart_data.summary.categorical_columns|length }}</h3>
+                                <p class="text-muted">Categorical Columns</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row">
+        {% if chart_data.line_chart %}
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{{ chart_data.line_chart.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if chart_data.bar_chart %}
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{{ chart_data.bar_chart.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row">
+        {% if chart_data.pie_chart %}
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{{ chart_data.pie_chart.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if chart_data.scatter_plot %}
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{{ chart_data.scatter_plot.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="scatterChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Data Table -->
+    {% if chart_data.data_table %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Data Preview (First 10 Rows)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    {% for column in chart_data.data_table.columns %}
+                                    <th>{{ column }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in chart_data.data_table.data %}
+                                <tr>
+                                    {% for cell in row %}
+                                    <td>{{ cell }}</td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+{% else %}
+    <!-- No Data Message -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <h3 class="text-muted">No CSV Data Available</h3>
+                    <p class="text-muted">Upload a CSV file to start visualizing your data.</p>
+                    <a href="{% url 'dashboard_app:upload_csv' %}" class="btn btn-primary btn-lg">
+                        Upload Your First CSV File
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Available CSV Files -->
+{% if csv_files %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Available CSV Files</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for csv_file in csv_files %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">{{ csv_file.name }}</h6>
+                            <small class="text-muted">Uploaded: {{ csv_file.uploaded_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">Active</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Chart data from Django
+const chartData = {{ chart_data|safe }};
+
+// Line Chart
+{% if chart_data.line_chart %}
+const lineCtx = document.getElementById('lineChart').getContext('2d');
+new Chart(lineCtx, {
+    type: 'line',
+    data: {
+        labels: chartData.line_chart.x,
+        datasets: [{
+            label: chartData.line_chart.y_label,
+            data: chartData.line_chart.y,
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: chartData.line_chart.x_label
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: chartData.line_chart.y_label
+                }
+            }
+        }
+    }
+});
+{% endif %}
+
+// Bar Chart
+{% if chart_data.bar_chart %}
+const barCtx = document.getElementById('barChart').getContext('2d');
+new Chart(barCtx, {
+    type: 'bar',
+    data: {
+        labels: chartData.bar_chart.x,
+        datasets: [{
+            label: chartData.bar_chart.y_label,
+            data: chartData.bar_chart.y,
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 205, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+                'rgba(255, 159, 64, 0.8)'
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 205, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: chartData.bar_chart.x_label
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: chartData.bar_chart.y_label
+                }
+            }
+        }
+    }
+});
+{% endif %}
+
+// Pie Chart
+{% if chart_data.pie_chart %}
+const pieCtx = document.getElementById('pieChart').getContext('2d');
+new Chart(pieCtx, {
+    type: 'pie',
+    data: {
+        labels: chartData.pie_chart.labels,
+        datasets: [{
+            data: chartData.pie_chart.values,
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 205, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+                'rgba(255, 159, 64, 0.8)'
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 205, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+{% endif %}
+
+// Scatter Plot
+{% if chart_data.scatter_plot %}
+const scatterCtx = document.getElementById('scatterChart').getContext('2d');
+new Chart(scatterCtx, {
+    type: 'scatter',
+    data: {
+        datasets: [{
+            label: 'Data Points',
+            data: chartData.scatter_plot.x.map((x, i) => ({
+                x: x,
+                y: chartData.scatter_plot.y[i]
+            })),
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: chartData.scatter_plot.x_label
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: chartData.scatter_plot.y_label
+                }
+            }
+        }
+    }
+});
+{% endif %}
+</script>
+{% endblock %}

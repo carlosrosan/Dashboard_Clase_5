@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload CSV - Dashboard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Upload CSV File</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="upload-area mb-4">
+                        <div class="mb-3">
+                            <i class="bi bi-cloud-upload" style="font-size: 3rem; color: #6c757d;"></i>
+                        </div>
+                        <h5>Choose CSV File</h5>
+                        <p class="text-muted">Select a CSV file to upload and visualize</p>
+                        <input type="file" class="form-control" name="csv_file" accept=".csv" required>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> File Requirements:</h6>
+                        <ul class="mb-0">
+                            <li>File must be in CSV format (.csv)</li>
+                            <li>First row should contain column headers</li>
+                            <li>File should contain both numeric and categorical data for best visualization</li>
+                            <li>Maximum file size: 10MB</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'dashboard_app:dashboard' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> Upload CSV
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Sample Data Info -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Sample CSV Format</h5>
+            </div>
+            <div class="card-body">
+                <p>For best results, your CSV should look like this:</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Age</th>
+                                <th>Department</th>
+                                <th>Salary</th>
+                                <th>Experience</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>John Doe</td>
+                                <td>30</td>
+                                <td>Engineering</td>
+                                <td>75000</td>
+                                <td>5</td>
+                            </tr>
+                            <tr>
+                                <td>Jane Smith</td>
+                                <td>28</td>
+                                <td>Marketing</td>
+                                <td>65000</td>
+                                <td>3</td>
+                            </tr>
+                            <tr>
+                                <td>Bob Johnson</td>
+                                <td>35</td>
+                                <td>Sales</td>
+                                <td>80000</td>
+                                <td>8</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <small class="text-muted">
+                    This format includes both categorical data (Name, Department) and numeric data (Age, Salary, Experience) 
+                    which will create multiple chart types automatically.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
