@@ -1,70 +1,74 @@
-# CSV Dashboard Django Project
+# Proyecto Dashboard CSV Django
 
-A Django web application that creates interactive dashboards from CSV data files. The dashboard automatically generates various chart types including line charts, bar charts, pie charts, and scatter plots based on the data structure.
+Una aplicación web Django que crea dashboards interactivos a partir de archivos de datos CSV. El dashboard genera automáticamente varios tipos de gráficos incluyendo gráficos de líneas, gráficos de barras, gráficos de pastel y gráficos de dispersión basados en la estructura de los datos.
 
-## Features
+## Características
 
-- **CSV File Upload**: Upload CSV files through a web interface
-- **Automatic Chart Generation**: Creates multiple chart types based on data structure:
-  - Line charts for time series data
-  - Bar charts for categorical vs numeric data
-  - Pie charts for categorical distributions
-  - Scatter plots for numeric correlations
-- **Data Summary**: Shows statistics about the uploaded data
-- **Data Preview**: Displays the first 10 rows of data in a table
-- **Responsive Design**: Works on desktop and mobile devices
+- **Carga de Archivos CSV**: Sube archivos CSV a través de una interfaz web
+- **Generación Automática de Gráficos**: Crea múltiples tipos de gráficos basados en la estructura de datos:
+  - Gráficos de líneas para datos de series temporales
+  - Gráficos de barras para datos categóricos vs numéricos
+  - Gráficos de pastel para distribuciones categóricas
+  - Gráficos de dispersión para correlaciones numéricas
+- **Resumen de Datos**: Muestra estadísticas sobre los datos cargados
+- **Vista Previa de Datos**: Muestra las primeras 10 filas de datos en una tabla
+- **Diseño Responsivo**: Funciona en dispositivos de escritorio y móviles
 
-## Installation
+## Instalación
 
-1. **Clone or download the project files**
+1. **Clona o descarga los archivos del proyecto**
 
-2. **Install Python dependencies**:
+2. **Instala las dependencias de Python**:
    ```bash
+   pip3 install virtualenv
+   virtualenv -p python3 dash_env
+   .\dash_env\Scripts\activate
+   python.exe -m pip install --upgrade pip
    pip install -r requirements.txt
    ```
 
-3. **Run database migrations**:
+3. **Ejecuta las migraciones de la base de datos**:
    ```bash
-   python manage.py makemigrations
+   python manage.py makemigrations dashboard_app
    python manage.py migrate
    ```
 
-4. **Create a superuser (optional)**:
+4. **Crea un superusuario (opcional)**:
    ```bash
    python manage.py createsuperuser
    ```
 
-5. **Run the development server**:
+5. **Ejecuta el servidor de desarrollo**:
    ```bash
    python manage.py runserver
    ```
 
-6. **Access the application**:
-   - Main dashboard: http://127.0.0.1:8000/
-   - Admin panel: http://127.0.0.1:8000/admin/
+6. **Accede a la aplicación**:
+   - Dashboard principal: http://127.0.0.1:8000/
+   - Panel de administración: http://127.0.0.1:8000/admin/
 
-## Usage
+## Uso
 
-1. **Upload a CSV file**:
-   - Click "Upload New CSV" on the dashboard
-   - Select a CSV file from your computer
-   - Click "Upload CSV"
+1. **Sube un archivo CSV**:
+   - Haz clic en "Upload New CSV" en el dashboard
+   - Selecciona un archivo CSV de tu computadora
+   - Haz clic en "Upload CSV"
 
-2. **View the dashboard**:
-   - The dashboard will automatically display charts based on your data
-   - Different chart types will appear depending on your data structure
+2. **Ve el dashboard**:
+   - El dashboard mostrará automáticamente gráficos basados en tus datos
+   - Diferentes tipos de gráficos aparecerán dependiendo de la estructura de tus datos
 
-3. **Sample data**:
-   - Use the included `sample_data.csv` file to test the application
+3. **Datos de ejemplo**:
+   - Usa el archivo `sample_data.csv` incluido para probar la aplicación
 
-## CSV File Requirements
+## Requisitos del Archivo CSV
 
-- File must be in CSV format (.csv)
-- First row should contain column headers
-- Include both numeric and categorical data for best visualization
-- Maximum file size: 10MB
+- El archivo debe estar en formato CSV (.csv)
+- La primera fila debe contener encabezados de columnas
+- Incluye tanto datos numéricos como categóricos para la mejor visualización
+- Tamaño máximo del archivo: 10MB
 
-## Sample Data Format
+## Formato de Datos de Ejemplo
 
 ```csv
 Name,Age,Department,Salary,Experience,Performance_Score
@@ -73,24 +77,24 @@ Jane Smith,28,Marketing,65000,3,78
 ...
 ```
 
-## Project Structure
+## Estructura del Proyecto
 
 ```
 dashboard_project/
-├── dashboard_project/          # Django project settings
+├── dashboard_project/          # Configuración del proyecto Django
 │   ├── __init__.py
 │   ├── settings.py
 │   ├── urls.py
 │   ├── wsgi.py
 │   └── asgi.py
-├── dashboard_app/              # Main application
+├── dashboard_app/              # Aplicación principal
 │   ├── __init__.py
 │   ├── admin.py
 │   ├── apps.py
 │   ├── models.py
 │   ├── urls.py
 │   └── views.py
-├── templates/                  # HTML templates
+├── templates/                  # Plantillas HTML
 │   ├── base.html
 │   └── dashboard_app/
 │       ├── dashboard.html
@@ -101,29 +105,29 @@ dashboard_project/
 └── README.md
 ```
 
-## Technologies Used
+## Tecnologías Utilizadas
 
-- **Django 4.2.7**: Web framework
-- **Pandas**: Data processing and analysis
-- **Chart.js**: Interactive charts and graphs
-- **Bootstrap 5**: Responsive UI framework
-- **SQLite**: Database (default)
+- **Django 4.2.7**: Framework web
+- **Pandas**: Procesamiento y análisis de datos
+- **Chart.js**: Gráficos y diagramas interactivos
+- **Bootstrap 5**: Framework de UI responsivo
+- **SQLite**: Base de datos (por defecto)
 
-## Customization
+## Personalización
 
-You can customize the dashboard by:
+Puedes personalizar el dashboard:
 
-1. **Adding new chart types** in `dashboard_app/views.py`
-2. **Modifying the UI** in the template files
-3. **Adding data processing logic** in the `prepare_chart_data` function
-4. **Styling** by modifying the CSS in `templates/base.html`
+1. **Agregando nuevos tipos de gráficos** en `dashboard_app/views.py`
+2. **Modificando la UI** en los archivos de plantilla
+3. **Agregando lógica de procesamiento de datos** en la función `prepare_chart_data`
+4. **Estilizando** modificando el CSS en `templates/base.html`
 
-## Troubleshooting
+## Solución de Problemas
 
-- **CSV upload issues**: Ensure the file is in proper CSV format with headers
-- **Charts not displaying**: Check browser console for JavaScript errors
-- **Database errors**: Run migrations with `python manage.py migrate`
+- **Problemas de carga de CSV**: Asegúrate de que el archivo esté en formato CSV correcto con encabezados
+- **Gráficos no se muestran**: Revisa la consola del navegador para errores de JavaScript
+- **Errores de base de datos**: Ejecuta las migraciones con `python manage.py migrate`
 
-## License
+## Licencia
 
-This project is open source and available under the MIT License.
+Este proyecto es de código abierto y está disponible bajo la Licencia MIT.
