@@ -3,13 +3,19 @@
 {% block title %}Dashboard - CSV Data Visualization{% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>CSV Data Dashboard</h1>
-            <a href="{% url 'dashboard_app:upload_csv' %}" class="btn btn-primary">
-                <i class="bi bi-upload"></i> Upload New CSV
-            </a>
+            <div class="btn-group" role="group">
+                <a href="{% url 'dashboard_app:upload_csv' %}" class="btn btn-primary">
+                    <i class="bi bi-upload"></i> Upload New CSV
+                </a>
+                <button type="button" class="btn btn-danger" id="cleanDataBtn" data-bs-toggle="modal" data-bs-target="#cleanDataModal">
+                    <i class="bi bi-trash"></i> Clean Data
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -197,6 +203,40 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Clean Data Confirmation Modal -->
+<div class="modal fade" id="cleanDataModal" tabindex="-1" aria-labelledby="cleanDataModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cleanDataModalLabel">Clean All Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Warning!</strong> This action will permanently delete all uploaded CSV files and database records.
+                </div>
+                <p>Are you sure you want to clean all data? This action cannot be undone.</p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-file-earmark-text text-muted"></i> All CSV files will be deleted</li>
+                    <li><i class="bi bi-database text-muted"></i> All database records will be removed</li>
+                    <li><i class="bi bi-graph-up text-muted"></i> All charts will be cleared</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmCleanBtn">
+                    <i class="bi bi-trash"></i> Yes, Clean All Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Alert -->
+<div id="alertContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;"></div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -367,5 +407,181 @@ new Chart(scatterCtx, {
     }
 });
 {% endif %}
+
+// Clean Data Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, setting up clean data functionality'); // Debug log
+    
+    const cleanDataBtn = document.getElementById('cleanDataBtn');
+    const confirmCleanBtn = document.getElementById('confirmCleanBtn');
+    const cleanDataModal = document.getElementById('cleanDataModal');
+    const alertContainer = document.getElementById('alertContainer');
+
+    console.log('Elements found:', {
+        cleanDataBtn: cleanDataBtn ? 'Yes' : 'No',
+        confirmCleanBtn: confirmCleanBtn ? 'Yes' : 'No',
+        cleanDataModal: cleanDataModal ? 'Yes' : 'No',
+        alertContainer: alertContainer ? 'Yes' : 'No'
+    }); // Debug log
+
+    // Add click listener to the main clean button
+    if (cleanDataBtn) {
+        cleanDataBtn.addEventListener('click', function() {
+            console.log('Clean Data button clicked - opening modal'); // Debug log
+            
+            // Test if Bootstrap modal is available
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                console.log('Bootstrap Modal is available'); // Debug log
+                const modal = new bootstrap.Modal(cleanDataModal);
+                modal.show();
+            } else {
+                console.log('Bootstrap Modal not available, using fallback'); // Debug log
+                // Fallback: show a simple confirm dialog
+                if (confirm('Are you sure you want to clean all data? This action cannot be undone.')) {
+                    // Call the clean function directly
+                    cleanDataDirectly();
+                }
+            }
+        });
+    }
+
+    if (confirmCleanBtn) {
+        confirmCleanBtn.addEventListener('click', function() {
+            console.log('Clean data button clicked'); // Debug log
+            
+            // Show loading state
+            confirmCleanBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Cleaning...';
+            confirmCleanBtn.disabled = true;
+
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            console.log('CSRF token found:', csrfToken ? 'Yes' : 'No'); // Debug log
+            
+            if (!csrfToken) {
+                console.error('CSRF token not found!');
+                showAlert('danger', 'CSRF token not found. Please refresh the page.');
+                confirmCleanBtn.innerHTML = '<i class="bi bi-trash"></i> Yes, Clean All Data';
+                confirmCleanBtn.disabled = false;
+                return;
+            }
+
+            // Make AJAX request
+            console.log('Making AJAX request to clean data...'); // Debug log
+            fetch('{% url "dashboard_app:clean_csv_data" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken.value,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                console.log('Response status:', response.status); // Debug log
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data); // Debug log
+                if (data.success) {
+                    // Show success message
+                    showAlert('success', data.message);
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(cleanDataModal);
+                    modal.hide();
+                    
+                    // Reload page after a short delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    // Show error message
+                    showAlert('danger', data.message);
+                    
+                    // Reset button
+                    confirmCleanBtn.innerHTML = '<i class="bi bi-trash"></i> Yes, Clean All Data';
+                    confirmCleanBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', `An error occurred while cleaning data: ${error.message}`);
+                
+                // Reset button
+                confirmCleanBtn.innerHTML = '<i class="bi bi-trash"></i> Yes, Clean All Data';
+                confirmCleanBtn.disabled = false;
+            });
+        });
+    }
+
+    function cleanDataDirectly() {
+        console.log('Cleaning data directly...'); // Debug log
+        
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        console.log('CSRF token found:', csrfToken ? 'Yes' : 'No'); // Debug log
+        
+        if (!csrfToken) {
+            console.error('CSRF token not found!');
+            alert('CSRF token not found. Please refresh the page.');
+            return;
+        }
+
+        // Make AJAX request
+        console.log('Making AJAX request to clean data...'); // Debug log
+        fetch('{% url "dashboard_app:clean_csv_data" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken.value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            console.log('Response status:', response.status); // Debug log
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data); // Debug log
+            if (data.success) {
+                alert('Success: ' + data.message);
+                // Reload page after a short delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while cleaning data: ' + error.message);
+        });
+    }
+
+    function showAlert(type, message) {
+        const alertId = 'alert-' + Date.now();
+        const alertHtml = `
+            <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
+                <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        alertContainer.insertAdjacentHTML('beforeend', alertHtml);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            const alert = document.getElementById(alertId);
+            if (alert) {
+                alert.remove();
+            }
+        }, 5000);
+    }
+});
 </script>
 {% endblock %}

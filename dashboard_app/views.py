@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from .models import CSVData
+import shutil
 
 
 def dashboard_view(request):
@@ -19,11 +20,17 @@ def dashboard_view(request):
     
     if csv_files.exists():
         latest_csv = csv_files.first()
-        csv_path = latest_csv.file_path
+        # Check if file_path is already absolute or relative
+        if os.path.isabs(latest_csv.file_path):
+            # If it's already an absolute path, use it directly
+            csv_path = latest_csv.file_path
+        else:
+            # If it's relative, join with MEDIA_ROOT
+            csv_path = os.path.join(settings.MEDIA_ROOT, latest_csv.file_path)
         
         try:
             # Read CSV data
-            df = pd.read_csv(csv_path)
+            df = pd.read_csv(csv_path, low_memory=False)
             
             # Prepare chart data
             chart_data = prepare_chart_data(df)
@@ -47,17 +54,29 @@ def upload_csv(request):
         
         # Save file to media directory
         file_path = default_storage.save(f'csv_files/{csv_file.name}', ContentFile(csv_file.read()))
-        full_path = os.path.join(settings.MEDIA_ROOT, file_path)
         
-        # Create CSVData record
+        # Create CSVData record with relative path
         csv_data = CSVData.objects.create(
             name=csv_file.name,
-            file_path=full_path
+            file_path=file_path  # Store relative path
         )
         
         return redirect('dashboard_app:dashboard')
     
     return render(request, 'dashboard_app/upload.html')
+
+
+def get_csv_file_path(file_path):
+    """Helper function to get the correct CSV file path"""
+    # Normalize the path to handle different path separators
+    file_path = os.path.normpath(file_path)
+    
+    # Check if it's already an absolute path
+    if os.path.isabs(file_path):
+        return file_path
+    
+    # If it's relative, join with MEDIA_ROOT
+    return os.path.join(settings.MEDIA_ROOT, file_path)
 
 
 def prepare_chart_data(df):
@@ -135,8 +154,52 @@ def get_chart_data(request, csv_id):
     """API endpoint to get chart data for a specific CSV file"""
     try:
         csv_data = CSVData.objects.get(id=csv_id)
-        df = pd.read_csv(csv_data.file_path)
+        csv_path = get_csv_file_path(csv_data.file_path)
+        df = pd.read_csv(csv_path, low_memory=False)
         chart_data = prepare_chart_data(df)
         return JsonResponse(chart_data)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+
+def clean_csv_data(request):
+    """Clean all CSV files and database records"""
+    if request.method == 'POST':
+        try:
+            print("Clean data request received")  # Debug log
+            
+            # Clear database records
+            csv_count = CSVData.objects.count()
+            print(f"Found {csv_count} CSV records to delete")  # Debug log
+            CSVData.objects.all().delete()
+            
+            # Clean CSV files directory
+            csv_dir = os.path.join(settings.MEDIA_ROOT, 'csv_files')
+            print(f"CSV directory: {csv_dir}")  # Debug log
+            
+            if os.path.exists(csv_dir):
+                # Get list of files before deletion for logging
+                files_before = os.listdir(csv_dir)
+                print(f"Files to delete: {files_before}")  # Debug log
+                
+                shutil.rmtree(csv_dir)
+                os.makedirs(csv_dir, exist_ok=True)
+                print("CSV directory cleaned and recreated")  # Debug log
+            else:
+                print("CSV directory does not exist")  # Debug log
+            
+            # Return success response
+            return JsonResponse({
+                'success': True,
+                'message': f'Successfully cleaned {csv_count} CSV files and database records.'
+            })
+            
+        except Exception as e:
+            print(f"Error in clean_csv_data: {str(e)}")  # Debug log
+            return JsonResponse({
+                'success': False,
+                'message': f'Error cleaning data: {str(e)}'
+            }, status=500)
+    
+    print("Invalid request method for clean_csv_data")  # Debug log
+    return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)

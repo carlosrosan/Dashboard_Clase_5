@@ -130,3 +130,17 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Add this to your settings.py
+CSV_FILES_DIR = 'csv_files'  # Relative to MEDIA_ROOT
+CSV_FILES_PATH = os.path.join(MEDIA_ROOT, CSV_FILES_DIR)
+
+# In settings.py
+import os
+
+# CSV file configuration
+CSV_UPLOAD_DIR = os.environ.get('CSV_UPLOAD_DIR', 'csv_files')
+CSV_FILES_PATH = os.path.join(MEDIA_ROOT, CSV_UPLOAD_DIR)
+
+# Ensure the directory exists
+os.makedirs(CSV_FILES_PATH, exist_ok=True)
