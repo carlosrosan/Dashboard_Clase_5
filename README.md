@@ -68,14 +68,6 @@ Una aplicación web Django que crea dashboards interactivos a partir de archivos
 - Incluye tanto datos numéricos como categóricos para la mejor visualización
 - Tamaño máximo del archivo: 10MB
 
-## Formato de Datos de Ejemplo
-
-```csv
-Name,Age,Department,Salary,Experience,Performance_Score
-John Doe,30,Engineering,75000,5,85
-Jane Smith,28,Marketing,65000,3,78
-...
-```
 
 ## Estructura del Proyecto
 
