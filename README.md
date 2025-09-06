@@ -2,7 +2,7 @@
 
 Una aplicación web Django que crea dashboards interactivos a partir de archivos de datos CSV. El dashboard genera automáticamente varios tipos de gráficos incluyendo gráficos de líneas, gráficos de barras, gráficos de pastel y gráficos de dispersión basados en la estructura de los datos.
 
-Creada por Esp. Ing. Carlos Rodríguez, parte de el Curso en vivo de IA en la Industria 4.0 de http://ingelearn.com/
+Creada utilizando Cursor AI por Esp. Ing. Carlos Rodríguez, parte de el Curso en vivo de IA en la Industria 4.0 de http://ingelearn.com/
 
 ## Características
 
@@ -66,8 +66,57 @@ GitHub Desktop no está disponible oficialmente para Linux. Alternativas:
 - **Git GUI**: Instalado con Git
 - **VS Code**: Con extensión de Git integrada
 
+### 3. **Instalar Cursor Desktop (Asistente de Código con IA)**
 
-## Instalación
+#### **Windows:**
+1. Ve a [cursor.com/downloads](https://cursor.com/downloads)
+2. Descarga la versión de Windows:
+   - **Windows (x64) (User)** - Para instalación de usuario (recomendado)
+   - **Windows (ARM64) (User)** - Para procesadores ARM
+   - **Windows (x64) (System)** - Para instalación del sistema
+   - **Windows (ARM64) (System)** - Para procesadores ARM del sistema
+3. Ejecuta el instalador y sigue las instrucciones
+4. Abre Cursor y configura tu cuenta (opcional pero recomendado)
+5. Cursor incluye Git integrado, por lo que no necesitas GitHub Desktop si prefieres usar Cursor
+
+#### **macOS:**
+1. Ve a [cursor.com/downloads](https://cursor.com/downloads)
+2. Descarga la versión de macOS:
+   - **Mac Universal** - Compatible con Intel y Apple Silicon (recomendado)
+   - **Mac (ARM64)** - Solo para Apple Silicon (M1/M2/M3)
+   - **Mac (x64)** - Solo para procesadores Intel
+3. Arrastra la aplicación a la carpeta Applications
+4. Abre Cursor desde Applications
+5. Configura tu cuenta para acceso a funciones avanzadas de IA
+
+#### **Linux:**
+1. Ve a [cursor.com/downloads](https://cursor.com/downloads)
+2. Descarga la versión de Linux según tu arquitectura:
+   - **Linux AppImage (x64/ARM64)** - Ejecutable portable (recomendado)
+   - **Linux .deb (x64/ARM64)** - Para Debian/Ubuntu
+   - **Linux RPM (x64/ARM64)** - Para Red Hat/Fedora/OpenSUSE
+3. Instala según el formato descargado:
+   ```bash
+   # Para AppImage (hacer ejecutable)
+   chmod +x cursor-*.AppImage
+   ./cursor-*.AppImage
+   
+   # Para Debian/Ubuntu (.deb)
+   sudo dpkg -i cursor-*.deb
+   
+   # Para Red Hat/Fedora (.rpm)
+   sudo rpm -i cursor-*.rpm
+   ```
+4. Abre Cursor desde el menú de aplicaciones
+
+#### **Características de Cursor:**
+- **Asistente de código con IA**: Genera código automáticamente
+- **Chat con IA**: Pregunta sobre tu código y recibe respuestas contextuales
+- **Git integrado**: Control de versiones sin necesidad de herramientas adicionales
+- **Soporte para múltiples lenguajes**: Python, JavaScript, HTML, CSS, etc.
+- **Compatible con extensiones de VS Code**: Reutiliza tu configuración existente
+
+## Instalación y ejecución
 
 1. **Clona o descarga los archivos del proyecto**
 
