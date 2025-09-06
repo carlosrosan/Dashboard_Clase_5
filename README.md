@@ -2,6 +2,8 @@
 
 Una aplicación web Django que crea dashboards interactivos a partir de archivos de datos CSV. El dashboard genera automáticamente varios tipos de gráficos incluyendo gráficos de líneas, gráficos de barras, gráficos de pastel y gráficos de dispersión basados en la estructura de los datos.
 
+Creada por Esp. Ing. Carlos Rodríguez, parte de el Curso en vivo de IA en la Industria 4.0 de http://ingelearn.com/
+
 ## Características
 
 - **Carga de Archivos CSV**: Sube archivos CSV a través de una interfaz web
