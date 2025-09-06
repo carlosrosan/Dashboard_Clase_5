@@ -116,7 +116,7 @@ GitHub Desktop no está disponible oficialmente para Linux. Alternativas:
 - **Soporte para múltiples lenguajes**: Python, JavaScript, HTML, CSS, etc.
 - **Compatible con extensiones de VS Code**: Reutiliza tu configuración existente
 
-## Instalación y ejecución
+## Instalación y ejecución del Dashboard
 
 1. **Clona o descarga los archivos del proyecto**
 
@@ -149,7 +149,7 @@ GitHub Desktop no está disponible oficialmente para Linux. Alternativas:
    - Dashboard principal: http://127.0.0.1:8000/
    - Panel de administración: http://127.0.0.1:8000/admin/
 
-## Uso
+## Uso del Dashboard
 
 1. **Sube un archivo CSV**:
    - Haz clic en "Upload New CSV" en el dashboard
