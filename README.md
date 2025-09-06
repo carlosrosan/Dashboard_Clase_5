@@ -16,6 +16,57 @@ Creada por Esp. Ing. Carlos Rodríguez, parte de el Curso en vivo de IA en la In
 - **Vista Previa de Datos**: Muestra las primeras 10 filas de datos en una tabla
 - **Diseño Responsivo**: Funciona en dispositivos de escritorio y móviles
 
+## Prerrequisitos
+
+### 1. **Instalar Python**
+
+#### **Windows:**
+1. Ve a [python.org](https://www.python.org/downloads/)
+2. Descarga la versión más reciente de Python (3.8 o superior)
+3. **IMPORTANTE**: Durante la instalación, marca la casilla "Add Python to PATH"
+4. Verifica la instalación abriendo Command Prompt y ejecutando:
+   ```cmd
+   python --version
+   pip --version
+   ```
+
+#### **macOS:**
+1. Instala Homebrew (si no lo tienes):
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+2. Instala Python:
+   ```bash
+   brew install python
+   ```
+
+#### **Linux (Ubuntu/Debian):**
+```bash
+sudo apt update
+sudo apt install python3 python3-pip python3-venv
+```
+
+### 2. **Instalar GitHub Desktop**
+
+#### **Windows:**
+1. Ve a [desktop.github.com](https://desktop.github.com/)
+2. Descarga GitHub Desktop para Windows
+3. Ejecuta el instalador y sigue las instrucciones
+4. Inicia sesión con tu cuenta de GitHub o crea una nueva
+
+#### **macOS:**
+1. Ve a [desktop.github.com](https://desktop.github.com/)
+2. Descarga GitHub Desktop para macOS
+3. Arrastra la aplicación a la carpeta Applications
+4. Inicia sesión con tu cuenta de GitHub
+
+#### **Linux:**
+GitHub Desktop no está disponible oficialmente para Linux. Alternativas:
+- **GitKraken**: [gitkraken.com](https://www.gitkraken.com/)
+- **Git GUI**: Instalado con Git
+- **VS Code**: Con extensión de Git integrada
+
+
 ## Instalación
 
 1. **Clona o descarga los archivos del proyecto**
