@@ -222,6 +222,12 @@ Puedes personalizar el dashboard:
 - **Gráficos no se muestran**: Revisa la consola del navegador para errores de JavaScript
 - **Errores de base de datos**: Ejecuta las migraciones con `python manage.py migrate`
 
+## Agradecimientos
+
+Un especial agradecimiento a todos los alumnos del **Curso en vivo de IA en la Industria 4.0** de [IngeLearn](http://ingelearn.com/) por su participación activa, preguntas valiosas y entusiasmo durante el desarrollo de este proyecto. Su curiosidad y compromiso hicieron posible crear una herramienta práctica y útil para el análisis de datos industriales.
+
+¡Gracias por ser parte de esta experiencia de aprendizaje y por contribuir al avance de la Industria 4.0!
+
 ## Licencia
 
 Este proyecto es de código abierto y está disponible bajo la Licencia MIT.
