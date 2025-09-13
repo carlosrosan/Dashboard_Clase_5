@@ -56,7 +56,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV='C:\Users\carlo\Documents\21.- MTTOIA\IngeLearn\IA en la Industria 4-0\Dashboard_IA\dash_env'
+VIRTUAL_ENV='C:\Users\carlo\Documents\21.- MTTOIA\IngeLearn\IA en la Industria 4-0\Dashboard_Clase_5_en_vivo\Dashboard_Clase_5\dash_env'
 if ([ "$OSTYPE" = "cygwin" ] || [ "$OSTYPE" = "msys" ]) && $(command -v cygpath &> /dev/null) ; then
     VIRTUAL_ENV=$(cygpath -u "$VIRTUAL_ENV")
 fi

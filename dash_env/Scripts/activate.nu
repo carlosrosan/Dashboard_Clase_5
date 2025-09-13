@@ -47,7 +47,7 @@ export-env {
         }
     }
 
-    let virtual_env = r#'C:\Users\carlo\Documents\21.- MTTOIA\IngeLearn\IA en la Industria 4-0\Dashboard_IA\dash_env'#
+    let virtual_env = r#'C:\Users\carlo\Documents\21.- MTTOIA\IngeLearn\IA en la Industria 4-0\Dashboard_Clase_5_en_vivo\Dashboard_Clase_5\dash_env'#
     let bin = r#'Scripts'#
     let path_name = if (has-env 'Path') { 'Path' } else { 'PATH' }
     let venv_path = ([$virtual_env $bin] | path join)

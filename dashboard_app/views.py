@@ -14,29 +14,35 @@ def dashboard_view(request):
     """Main dashboard view that displays CSV data as charts"""
     csv_files = CSVData.objects.all()
     
-    # Default to first CSV file if available
+    # Try to read directly from project root CSV file first
     csv_data = None
     chart_data = None
     
-    if csv_files.exists():
-        latest_csv = csv_files.first()
-        # Check if file_path is already absolute or relative
-        if os.path.isabs(latest_csv.file_path):
-            # If it's already an absolute path, use it directly
-            csv_path = latest_csv.file_path
-        else:
-            # If it's relative, join with MEDIA_ROOT
-            csv_path = os.path.join(settings.MEDIA_ROOT, latest_csv.file_path)
+    try:
+        # Get direct path to CSV file in project root
+        csv_path = get_csv_file_path_direct()
         
-        try:
-            # Read CSV data
+        if os.path.exists(csv_path):
+            # Read CSV data directly from file
             df = pd.read_csv(csv_path, low_memory=False)
-            
-            # Prepare chart data
             chart_data = prepare_chart_data(df)
+            csv_data = {'name': 'synthetic_plc_tank.csv', 'file_path': csv_path}
+        else:
+            # Fallback to database files if project root file doesn't exist
+            if csv_files.exists():
+                latest_csv = csv_files.first()
+                if os.path.isabs(latest_csv.file_path):
+                    csv_path = latest_csv.file_path
+                else:
+                    csv_path = os.path.join(settings.MEDIA_ROOT, latest_csv.file_path)
+                
+                if os.path.exists(csv_path):
+                    df = pd.read_csv(csv_path, low_memory=False)
+                    chart_data = prepare_chart_data(df)
+                    csv_data = latest_csv
             
-        except Exception as e:
-            print(f"Error reading CSV: {e}")
+    except Exception as e:
+        print(f"Error reading CSV: {e}")
     
     context = {
         'csv_files': csv_files,
@@ -203,3 +209,73 @@ def clean_csv_data(request):
     
     print("Invalid request method for clean_csv_data")  # Debug log
     return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
+
+
+def get_csv_file_path_direct():
+    """Get the direct path to the CSV file in the project root"""
+    # Get the absolute path to the CSV file in the project root
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    csv_path = os.path.join(project_root, 'synthetic_plc_tank.csv')
+    return csv_path
+
+
+def get_latest_data(request):
+    """API endpoint to get latest CSV data for auto-refresh"""
+    try:
+        # Get direct path to CSV file in project root
+        csv_path = get_csv_file_path_direct()
+        
+        # Check if file exists
+        if not os.path.exists(csv_path):
+            return JsonResponse({'error': 'CSV file not found at project root'}, status=404)
+        
+        # Read CSV data directly from file
+        df = pd.read_csv(csv_path, low_memory=False)
+        
+        # Prepare chart data
+        chart_data = prepare_chart_data(df)
+        
+        # Add metadata
+        chart_data['file_path'] = csv_path
+        chart_data['file_name'] = 'synthetic_plc_tank.csv'
+        chart_data['last_modified'] = os.path.getmtime(csv_path)
+        
+        return JsonResponse(chart_data)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+def set_csv_source(request):
+    """Set the CSV data source path"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            csv_path = data.get('csv_path', '').strip()
+            
+            if not csv_path:
+                return JsonResponse({'error': 'CSV path is required'}, status=400)
+            
+            # Validate if file exists
+            if not os.path.exists(csv_path):
+                return JsonResponse({'error': 'CSV file not found at specified path'}, status=400)
+            
+            # Clear existing CSV data
+            CSVData.objects.all().delete()
+            
+            # Create new CSVData record
+            csv_data = CSVData.objects.create(
+                name=os.path.basename(csv_path),
+                file_path=csv_path  # Store absolute path
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'CSV source set to: {csv_path}',
+                'file_name': csv_data.name
+            })
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)

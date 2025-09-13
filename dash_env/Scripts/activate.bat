@@ -5,7 +5,7 @@
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-@set "VIRTUAL_ENV=C:\Users\carlo\Documents\21.- MTTOIA\IngeLearn\IA en la Industria 4-0\Dashboard_IA\dash_env"
+@set "VIRTUAL_ENV=C:\Users\carlo\Documents\21.- MTTOIA\IngeLearn\IA en la Industria 4-0\Dashboard_Clase_5_en_vivo\Dashboard_Clase_5\dash_env"
 
 @set "VIRTUAL_ENV_PROMPT="
 @if NOT DEFINED VIRTUAL_ENV_PROMPT (

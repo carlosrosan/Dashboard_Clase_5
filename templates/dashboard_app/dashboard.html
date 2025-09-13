@@ -9,6 +9,9 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>CSV Data Dashboard</h1>
             <div class="btn-group" role="group">
+                <button type="button" class="btn btn-info" id="setSourceBtn" data-bs-toggle="modal" data-bs-target="#setSourceModal">
+                    <i class="bi bi-gear"></i> Set Data Source
+                </button>
                 <a href="{% url 'dashboard_app:upload_csv' %}" class="btn btn-primary">
                     <i class="bi bi-upload"></i> Upload New CSV
                 </a>
@@ -16,6 +19,22 @@
                     <i class="bi bi-trash"></i> Clean Data
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Auto-refresh status -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="alert alert-info d-flex justify-content-between align-items-center" id="refreshStatus">
+            <span>
+                <i class="bi bi-arrow-clockwise"></i>
+                <span id="refreshText">Auto-refresh: ON (every 5 seconds)</span>
+                <small class="text-muted ms-2" id="lastUpdate">Last update: --</small>
+            </span>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="toggleRefresh">
+                <i class="bi bi-pause"></i> Pause
+            </button>
         </div>
     </div>
 </div>
@@ -204,6 +223,31 @@
 </div>
 {% endif %}
 
+<!-- Set Data Source Modal -->
+<div class="modal fade" id="setSourceModal" tabindex="-1" aria-labelledby="setSourceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="setSourceModalLabel">Set CSV Data Source</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="csvPathInput" class="form-label">CSV File Path</label>
+                    <input type="text" class="form-control" id="csvPathInput" placeholder="Enter full path to CSV file">
+                    <div class="form-text">Enter the absolute path to your CSV file (e.g., C:\path\to\your\file.csv)</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmSetSource">
+                    <i class="bi bi-check"></i> Set Source
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Clean Data Confirmation Modal -->
 <div class="modal fade" id="cleanDataModal" tabindex="-1" aria-labelledby="cleanDataModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -241,204 +285,409 @@
 
 {% block extra_js %}
 <script>
+// Global variables for auto-refresh
+let refreshInterval;
+let isAutoRefreshEnabled = true;
+let chartInstances = {};
+
 // Chart data from Django
-const chartData = {{ chart_data|safe }};
+let chartData = {{ chart_data|safe }};
 
-// Line Chart
-{% if chart_data.line_chart %}
-const lineCtx = document.getElementById('lineChart').getContext('2d');
-new Chart(lineCtx, {
-    type: 'line',
-    data: {
-        labels: chartData.line_chart.x,
-        datasets: [{
-            label: chartData.line_chart.y_label,
-            data: chartData.line_chart.y,
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            tension: 0.1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            x: {
-                title: {
-                    display: true,
-                    text: chartData.line_chart.x_label
-                }
-            },
-            y: {
-                title: {
-                    display: true,
-                    text: chartData.line_chart.y_label
-                }
-            }
-        }
-    }
-});
-{% endif %}
-
-// Bar Chart
-{% if chart_data.bar_chart %}
-const barCtx = document.getElementById('barChart').getContext('2d');
-new Chart(barCtx, {
-    type: 'bar',
-    data: {
-        labels: chartData.bar_chart.x,
-        datasets: [{
-            label: chartData.bar_chart.y_label,
-            data: chartData.bar_chart.y,
-            backgroundColor: [
-                'rgba(255, 99, 132, 0.8)',
-                'rgba(54, 162, 235, 0.8)',
-                'rgba(255, 205, 86, 0.8)',
-                'rgba(75, 192, 192, 0.8)',
-                'rgba(153, 102, 255, 0.8)',
-                'rgba(255, 159, 64, 0.8)'
-            ],
-            borderColor: [
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 205, 86, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 159, 64, 1)'
-            ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            x: {
-                title: {
-                    display: true,
-                    text: chartData.bar_chart.x_label
-                }
-            },
-            y: {
-                title: {
-                    display: true,
-                    text: chartData.bar_chart.y_label
-                }
-            }
-        }
-    }
-});
-{% endif %}
-
-// Pie Chart
-{% if chart_data.pie_chart %}
-const pieCtx = document.getElementById('pieChart').getContext('2d');
-new Chart(pieCtx, {
-    type: 'pie',
-    data: {
-        labels: chartData.pie_chart.labels,
-        datasets: [{
-            data: chartData.pie_chart.values,
-            backgroundColor: [
-                'rgba(255, 99, 132, 0.8)',
-                'rgba(54, 162, 235, 0.8)',
-                'rgba(255, 205, 86, 0.8)',
-                'rgba(75, 192, 192, 0.8)',
-                'rgba(153, 102, 255, 0.8)',
-                'rgba(255, 159, 64, 0.8)'
-            ],
-            borderColor: [
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 205, 86, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 159, 64, 1)'
-            ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
-    }
-});
-{% endif %}
-
-// Scatter Plot
-{% if chart_data.scatter_plot %}
-const scatterCtx = document.getElementById('scatterChart').getContext('2d');
-new Chart(scatterCtx, {
-    type: 'scatter',
-    data: {
-        datasets: [{
-            label: 'Data Points',
-            data: chartData.scatter_plot.x.map((x, i) => ({
-                x: x,
-                y: chartData.scatter_plot.y[i]
-            })),
-            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            x: {
-                title: {
-                    display: true,
-                    text: chartData.scatter_plot.x_label
-                }
-            },
-            y: {
-                title: {
-                    display: true,
-                    text: chartData.scatter_plot.y_label
-                }
-            }
-        }
-    }
-});
-{% endif %}
-
-// Clean Data Functionality
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, setting up clean data functionality'); // Debug log
+// Initialize charts function
+function initializeCharts(data) {
+    // Store reference to data
+    chartData = data;
     
+    // Initialize Line Chart
+    if (data.line_chart) {
+        initializeLineChart(data.line_chart);
+    }
+    
+    // Initialize Bar Chart
+    if (data.bar_chart) {
+        initializeBarChart(data.bar_chart);
+    }
+    
+    // Initialize Pie Chart
+    if (data.pie_chart) {
+        initializePieChart(data.pie_chart);
+    }
+    
+    // Initialize Scatter Plot
+    if (data.scatter_plot) {
+        initializeScatterChart(data.scatter_plot);
+    }
+    
+    // Update summary statistics
+    updateSummaryStats(data.summary);
+    
+    // Update data table
+    updateDataTable(data.data_table);
+}
+
+function initializeLineChart(data) {
+    const ctx = document.getElementById('lineChart');
+    if (ctx && chartInstances.lineChart) {
+        chartInstances.lineChart.destroy();
+    }
+    
+    if (ctx) {
+        chartInstances.lineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.x,
+                datasets: [{
+                    label: data.y_label,
+                    data: data.y,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: data.x_label
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: data.y_label
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function initializeBarChart(data) {
+    const ctx = document.getElementById('barChart');
+    if (ctx && chartInstances.barChart) {
+        chartInstances.barChart.destroy();
+    }
+    
+    if (ctx) {
+        chartInstances.barChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.x,
+                datasets: [{
+                    label: data.y_label,
+                    data: data.y,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 205, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 205, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: data.x_label
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: data.y_label
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function initializePieChart(data) {
+    const ctx = document.getElementById('pieChart');
+    if (ctx && chartInstances.pieChart) {
+        chartInstances.pieChart.destroy();
+    }
+    
+    if (ctx) {
+        chartInstances.pieChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.values,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 205, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 205, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+}
+
+function initializeScatterChart(data) {
+    const ctx = document.getElementById('scatterChart');
+    if (ctx && chartInstances.scatterChart) {
+        chartInstances.scatterChart.destroy();
+    }
+    
+    if (ctx) {
+        chartInstances.scatterChart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Data Points',
+                    data: data.x.map((x, i) => ({
+                        x: x,
+                        y: data.y[i]
+                    })),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: data.x_label
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: data.y_label
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function updateSummaryStats(summary) {
+    if (summary) {
+        const elements = {
+            'total_rows': document.querySelector('.text-primary'),
+            'total_columns': document.querySelector('.text-success'),
+            'numeric_columns': document.querySelector('.text-info'),
+            'categorical_columns': document.querySelector('.text-warning')
+        };
+        
+        if (elements.total_rows) elements.total_rows.textContent = summary.total_rows;
+        if (elements.total_columns) elements.total_columns.textContent = summary.total_columns;
+        if (elements.numeric_columns) elements.numeric_columns.textContent = summary.numeric_columns.length;
+        if (elements.categorical_columns) elements.categorical_columns.textContent = summary.categorical_columns.length;
+    }
+}
+
+function updateDataTable(dataTable) {
+    if (dataTable && dataTable.data) {
+        const tbody = document.querySelector('tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            dataTable.data.forEach(row => {
+                const tr = document.createElement('tr');
+                row.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        }
+    }
+}
+
+// Auto-refresh functionality
+function startAutoRefresh() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+    
+    refreshInterval = setInterval(() => {
+        if (isAutoRefreshEnabled) {
+            fetchLatestData();
+        }
+    }, 5000); // 5 seconds
+}
+
+function stopAutoRefresh() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+    }
+}
+
+function fetchLatestData() {
+    fetch('{% url "dashboard_app:latest_data" %}')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.error('Error fetching data:', data.error);
+                showAlert('warning', `Data fetch error: ${data.error}`);
+                return;
+            }
+            
+            // Update charts with new data
+            initializeCharts(data);
+            
+            // Update last update time
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('lastUpdate').textContent = `Last update: ${timeString}`;
+            
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('danger', `Connection error: ${error.message}`);
+        });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts with initial data
+    if (chartData) {
+        initializeCharts(chartData);
+    }
+    
+    // Start auto-refresh
+    startAutoRefresh();
+    
+    // Toggle refresh button
+    const toggleRefreshBtn = document.getElementById('toggleRefresh');
+    if (toggleRefreshBtn) {
+        toggleRefreshBtn.addEventListener('click', function() {
+            isAutoRefreshEnabled = !isAutoRefreshEnabled;
+            
+            if (isAutoRefreshEnabled) {
+                this.innerHTML = '<i class="bi bi-pause"></i> Pause';
+                document.getElementById('refreshText').textContent = 'Auto-refresh: ON (every 5 seconds)';
+                document.getElementById('refreshStatus').className = 'alert alert-info d-flex justify-content-between align-items-center';
+            } else {
+                this.innerHTML = '<i class="bi bi-play"></i> Resume';
+                document.getElementById('refreshText').textContent = 'Auto-refresh: PAUSED';
+                document.getElementById('refreshStatus').className = 'alert alert-warning d-flex justify-content-between align-items-center';
+            }
+        });
+    }
+    
+    // Set source functionality
+    const confirmSetSourceBtn = document.getElementById('confirmSetSource');
+    if (confirmSetSourceBtn) {
+        confirmSetSourceBtn.addEventListener('click', function() {
+            const csvPath = document.getElementById('csvPathInput').value.trim();
+            
+            if (!csvPath) {
+                showAlert('danger', 'Please enter a CSV file path');
+                return;
+            }
+            
+            // Show loading state
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Setting...';
+            this.disabled = true;
+            
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            
+            fetch('{% url "dashboard_app:set_csv_source" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken.value,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ csv_path: csvPath })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('success', data.message);
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('setSourceModal'));
+                    modal.hide();
+                    
+                    // Clear input
+                    document.getElementById('csvPathInput').value = '';
+                    
+                    // Refresh data immediately
+                    fetchLatestData();
+                } else {
+                    showAlert('danger', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', `Error setting source: ${error.message}`);
+            })
+            .finally(() => {
+                this.innerHTML = '<i class="bi bi-check"></i> Set Source';
+                this.disabled = false;
+            });
+        });
+    }
+    
+    // Clean Data Functionality
     const cleanDataBtn = document.getElementById('cleanDataBtn');
     const confirmCleanBtn = document.getElementById('confirmCleanBtn');
     const cleanDataModal = document.getElementById('cleanDataModal');
-    const alertContainer = document.getElementById('alertContainer');
 
-    console.log('Elements found:', {
-        cleanDataBtn: cleanDataBtn ? 'Yes' : 'No',
-        confirmCleanBtn: confirmCleanBtn ? 'Yes' : 'No',
-        cleanDataModal: cleanDataModal ? 'Yes' : 'No',
-        alertContainer: alertContainer ? 'Yes' : 'No'
-    }); // Debug log
-
-    // Add click listener to the main clean button
     if (cleanDataBtn) {
         cleanDataBtn.addEventListener('click', function() {
-            console.log('Clean Data button clicked - opening modal'); // Debug log
-            
-            // Test if Bootstrap modal is available
             if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                console.log('Bootstrap Modal is available'); // Debug log
                 const modal = new bootstrap.Modal(cleanDataModal);
                 modal.show();
             } else {
-                console.log('Bootstrap Modal not available, using fallback'); // Debug log
-                // Fallback: show a simple confirm dialog
                 if (confirm('Are you sure you want to clean all data? This action cannot be undone.')) {
-                    // Call the clean function directly
                     cleanDataDirectly();
                 }
             }
@@ -447,18 +696,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (confirmCleanBtn) {
         confirmCleanBtn.addEventListener('click', function() {
-            console.log('Clean data button clicked'); // Debug log
-            
             // Show loading state
             confirmCleanBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Cleaning...';
             confirmCleanBtn.disabled = true;
 
             // Get CSRF token
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-            console.log('CSRF token found:', csrfToken ? 'Yes' : 'No'); // Debug log
             
             if (!csrfToken) {
-                console.error('CSRF token not found!');
                 showAlert('danger', 'CSRF token not found. Please refresh the page.');
                 confirmCleanBtn.innerHTML = '<i class="bi bi-trash"></i> Yes, Clean All Data';
                 confirmCleanBtn.disabled = false;
@@ -466,7 +711,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Make AJAX request
-            console.log('Making AJAX request to clean data...'); // Debug log
             fetch('{% url "dashboard_app:clean_csv_data" %}', {
                 method: 'POST',
                 headers: {
@@ -475,16 +719,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
             })
             .then(response => {
-                console.log('Response status:', response.status); // Debug log
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
-                console.log('Response data:', data); // Debug log
                 if (data.success) {
-                    // Show success message
                     showAlert('success', data.message);
                     
                     // Close modal
@@ -496,10 +737,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.reload();
                     }, 1500);
                 } else {
-                    // Show error message
                     showAlert('danger', data.message);
-                    
-                    // Reset button
                     confirmCleanBtn.innerHTML = '<i class="bi bi-trash"></i> Yes, Clean All Data';
                     confirmCleanBtn.disabled = false;
                 }
@@ -507,8 +745,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error:', error);
                 showAlert('danger', `An error occurred while cleaning data: ${error.message}`);
-                
-                // Reset button
                 confirmCleanBtn.innerHTML = '<i class="bi bi-trash"></i> Yes, Clean All Data';
                 confirmCleanBtn.disabled = false;
             });
@@ -516,20 +752,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function cleanDataDirectly() {
-        console.log('Cleaning data directly...'); // Debug log
-        
-        // Get CSRF token
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-        console.log('CSRF token found:', csrfToken ? 'Yes' : 'No'); // Debug log
         
         if (!csrfToken) {
-            console.error('CSRF token not found!');
             alert('CSRF token not found. Please refresh the page.');
             return;
         }
 
-        // Make AJAX request
-        console.log('Making AJAX request to clean data...'); // Debug log
         fetch('{% url "dashboard_app:clean_csv_data" %}', {
             method: 'POST',
             headers: {
@@ -538,17 +767,14 @@ document.addEventListener('DOMContentLoaded', function() {
             },
         })
         .then(response => {
-            console.log('Response status:', response.status); // Debug log
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
-            console.log('Response data:', data); // Debug log
             if (data.success) {
                 alert('Success: ' + data.message);
-                // Reload page after a short delay
                 setTimeout(() => {
                     window.location.reload();
                 }, 1500);
@@ -561,27 +787,35 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('An error occurred while cleaning data: ' + error.message);
         });
     }
-
-    function showAlert(type, message) {
-        const alertId = 'alert-' + Date.now();
-        const alertHtml = `
-            <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
-                <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
-        
-        alertContainer.insertAdjacentHTML('beforeend', alertHtml);
-        
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            const alert = document.getElementById(alertId);
-            if (alert) {
-                alert.remove();
-            }
-        }, 5000);
-    }
 });
+
+// Clean up on page unload
+window.addEventListener('beforeunload', function() {
+    stopAutoRefresh();
+});
+
+function showAlert(type, message) {
+    const alertContainer = document.getElementById('alertContainer');
+    if (!alertContainer) return;
+    
+    const alertId = 'alert-' + Date.now();
+    const alertHtml = `
+        <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
+            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    alertContainer.insertAdjacentHTML('beforeend', alertHtml);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        const alert = document.getElementById(alertId);
+        if (alert) {
+            alert.remove();
+        }
+    }, 5000);
+}
 </script>
 {% endblock %}

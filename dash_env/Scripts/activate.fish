@@ -75,7 +75,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV 'C:\Users\carlo\Documents\21.- MTTOIA\IngeLearn\IA en la Industria 4-0\Dashboard_IA\dash_env'
+set -gx VIRTUAL_ENV 'C:\Users\carlo\Documents\21.- MTTOIA\IngeLearn\IA en la Industria 4-0\Dashboard_Clase_5_en_vivo\Dashboard_Clase_5\dash_env'
 
 # https://github.com/fish-shell/fish-shell/issues/436 altered PATH handling
 if test (string sub -s 1 -l 1 $FISH_VERSION) -lt 3
